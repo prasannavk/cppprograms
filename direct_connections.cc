@@ -5,8 +5,8 @@
 #include <algorithm>
 using namespace std;
 struct City {
-  int xcoord;
-  int pi;
+  long long int xcoord;
+  long long int pi;
 };
 
 struct Block {
@@ -14,7 +14,7 @@ struct Block {
   vector<City> cities; 
 };
 
-long int GetAmountCable(const City &A, const City &B) {
+long long int GetAmountCable(const City &A, const City &B) {
   return std::max(A.pi, B.pi)*(std::abs(A.xcoord - B.xcoord)); 
 }
 
@@ -22,10 +22,11 @@ long long int FindTotalCable(Block blk) {
   long long int total = 0;
   for (int i = 0; i < blk.n; ++i) {
     for (int j = i + 1; j < blk.n; ++j) {
-      long int cable_len = GetAmountCable(blk.cities[i], blk.cities[j]);
+      long long int cable_len = GetAmountCable(blk.cities[i], blk.cities[j]);
       total += cable_len;
     }
   }
+  total %= 1000000007;
   return total;
 }
 
@@ -62,3 +63,4 @@ int main() {
     
     return 0;
 }
+
