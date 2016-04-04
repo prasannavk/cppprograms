@@ -107,11 +107,66 @@ HandRank CheckKind(const vector<string> &player_cards) {
 
 HandRank CheckStraight(const vector<string> &player_cards) {
   vector<int> values;
+  int val = 0;
+  assert(player_cards.size() == 5);
   for (auto single_card : player_cards) {
-    int val = single_card[0] - '0'; 
+    if (single_card[0] >= '2' && single_card[0] <= '9') {
+      val = single_card[0] - '0'; 
+    } else {
+#if 0
+      switch (single_card[0]) {
+        case 'T': {
+          val = 10;
+          break;
+        }
+        case 'J': {
+          val = 11;
+          break;
+        }
+        case 'Q': {
+          val = 12;
+          break;
+        }
+        case 'K': {
+          val = 13;
+          break;
+        }
+        case 'A': {
+          val = 1;
+          break;
+        }
+        default: {
+          std::cout << "Error: invalid card " << single_card << "\n";
+          val = 0;
+        }
+      }
+#endif
+      val = 0;
+    }
     values.push_back(val);
   }
+  
+  return HIGH_CARD;
+#if 0
+  assert(values.size() == 5);
   std::sort(values.begin(), values.end());  
+  std::cout << "values in straight \n";
+  for (auto value : values) {
+    std::cout << value << " ";
+  }
+  std::cout << "\n";
+  assert(values.size() == 5);
+
+  for (int i = 0; i < values.size() - 1; ++i) {
+    int diff = values[i+1] - values[i];
+    if (diff != 1) {
+      std::cout << "returning high card\n";
+      return HIGH_CARD;
+    }
+  }
+  std::cout << "returning straight\n";
+  return STRAIGHT;
+#endif
 }
 
 HandRank CheckFlush(const vector<string> &player_cards) {
@@ -135,18 +190,26 @@ int DecideWinner(vector<string> card_vec) {
   // Royal Flush
   vector<string> player_1, player_2;
   SplitPlayers(card_vec, &player_1, &player_2);
-  std::cout << CheckKind(player_1) << " vs " << CheckKind(player_2);
+  assert(player_1.size() == 5);
+  assert(player_2.size() == 5);
+  std::cout << CheckKind(player_1) << " vs " << CheckKind(player_2) << "\n";
+  std::cout << CheckStraight(player_1) << " vs " << CheckStraight(player_2) << "\n";
+  std::cout << CheckFlush(player_1) << " vs " << CheckFlush(player_2) << "\n";
   std::cout << "\n------------------\n";
+  return 1;
 }
 
 int main() {
   std::ifstream is("p054_poker.txt");
+  if (!is) {
+    std::cout << "error opening file \n";
+  }
   std::string game_line;
   int counter = 1;
     
   while (std::getline(is, game_line)) {
     // std::cout << "line " << counter << "\n";
-    // std::cout << game_line << std::endl;
+    std::cout << game_line << std::endl;
     vector<string> card_vec = Tokenize(game_line);
     int player_num = DecideWinner(card_vec);
     counter++;
