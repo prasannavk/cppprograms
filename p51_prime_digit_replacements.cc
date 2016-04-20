@@ -22,10 +22,6 @@ struct PrimeNumberFamily {
 // a canon number is the repeated digits replaced with 1
 std::map<int, PrimeNumberFamily> canon_number_to_family;
 
-// this is the map from index numbers of a k-digit number to a list of prime
-// numbers that have the same indexes repeated
-std::map<int, vector<long long int> > indexes_to_prime_numbers;
-
 struct Metadata {
   int repeating_digit;
   vector<int> index_list;
@@ -57,11 +53,10 @@ int TestPrime(int n) {
   return 1;
 }
 
-// index_list for say 83647 is 54321 - it's the digit's place in a crazy ad-hoc format
-bool IsDigitRepeating(long long int prime_number, std::map<int, Metadata> *digit_map) {  // , long long int *canon_number) { 
+// index_list for say 83647 is [5,4,3,2,1] - it's the digit's place in a crazy ad-hoc format
+bool IsDigitRepeating(long long int prime_number, std::map<int, Metadata> *digit_map) {
   bool is_repeated = false;
   int digit_index = 1;
-  // *canon_number = 0;
   std::deque<int> canon_number_digit_queue;
   std::vector<int> actual_digit_vector;
   while (prime_number !=0) {
@@ -76,20 +71,6 @@ bool IsDigitRepeating(long long int prime_number, std::map<int, Metadata> *digit
         // to 1 as well
         // There have been digit_index - 1 digits that are in the canon_number_digit_queue.
         // 10007  
-#if 0
-        int found_index = -1;
-        for (int i = 0; i < actual_digit_vector.size(); ++i) {
-          if (actual_digit_vector[i] == digit) {
-            found_index = i + 1;
-          }
-        }
-        if (found_index == -1) {
-          cout << "this is unexpected and should not happen\n";
-          exit(0);
-        }
-        digit_meta.index_list.push_back(found_index);
-
-#endif
         int count_from_right = digit_meta.index_list[0];
         int index_to_update = canon_number_digit_queue.size() - count_from_right;
         canon_number_digit_queue[index_to_update] = 1;
@@ -98,7 +79,6 @@ bool IsDigitRepeating(long long int prime_number, std::map<int, Metadata> *digit
 
       // TODO: Need to handle 2 different digits repeating
       canon_number_digit_queue.push_front(1);
-      // *canon_number = (*canon_number)*10 + 1;
     } else {
       Metadata digit_meta;
       digit_meta.repeating_digit = digit;
@@ -108,19 +88,17 @@ bool IsDigitRepeating(long long int prime_number, std::map<int, Metadata> *digit
       (*digit_map)[digit] = digit_meta;
 
       canon_number_digit_queue.push_front(digit);
-      // *canon_number = *canon_number*10 + digit;
     }
     actual_digit_vector.push_back(digit);
     prime_number /= 10;
     digit_index++;
   }
-#if 0
-#endif
   return is_repeated;
 }
 
-void FindCanonNumber(long long int prime_number, std::map<int, Metadata> digit_map, int repeating_digit, long long int *canon_number) {  // , long long int *canon_number) { 
-  
+void FindCanonNumber(long long int prime_number,
+    std::map<int, Metadata> digit_map,
+    int repeating_digit, long long int *canon_number) {
   int digit_index = 1;
   std::deque<int> canon_number_digit_queue;
   while (prime_number != 0) {
@@ -182,21 +160,8 @@ int main() {
             copy(kv.second.index_list.begin(), kv.second.index_list.end(), std::ostream_iterator<int>(cout, ","));
             cout << "\n";
             FindCanonNumber(current_num, digit_map, repeating_digit, &canon_number);
-          
-            int indexes_as_single_num = 0;
-            vector<int> indexes_of_repeating_digit = kv.second.index_list;
-            for (auto index : indexes_of_repeating_digit) {
-              indexes_as_single_num = indexes_as_single_num*10 + index;
-            }
-            if (indexes_to_prime_numbers.find(indexes_as_single_num) == indexes_to_prime_numbers.end()) {
-              std::vector<long long int> temp_vec;
-              temp_vec.push_back(current_num);
-              indexes_to_prime_numbers[indexes_as_single_num] = temp_vec;
-            } else {
-              std::vector<long long int> &prime_num_vec = indexes_to_prime_numbers[indexes_as_single_num];
-              prime_num_vec.push_back(current_num);
-            }
 
+            vector<int> indexes_of_repeating_digit = kv.second.index_list;
             // make the map for canon number
             if (canon_number_to_family.find(canon_number) == canon_number_to_family.end()) {
               cout << "Canon number " << canon_number << " not found. Adding new number\n";
@@ -221,34 +186,15 @@ int main() {
               copy(pfamily_ref.index_list.begin(), pfamily_ref.index_list.end(), std::ostream_iterator<int>(cout, ","));
               cout << "\nsimilar numbers are:\n";
               copy(pfamily_ref.prime_family_list.begin(), pfamily_ref.prime_family_list.end(), std::ostream_iterator<int>(cout, ","));
-               
               cout << "\n";
               int i = 0;
-              bool is_different = false;
+
               for (auto ind : indexes_of_repeating_digit) {
-                // assert(ind == pfamily_ref.index_list[i]);
-                if (ind != pfamily_ref.index_list[i]) {
-                  is_different = true;
-                }
+                assert(ind == pfamily_ref.index_list[i]);
                 ++i;
               }
-              if (is_different) {
-                cout <<" It can't be different!\n";
-                exit(0);
-                PrimeNumberFamily pfamily;
-                pfamily.size = 1;
-                pfamily.index_list = indexes_of_repeating_digit;
-                std::vector<long long int> initial_list;
-                initial_list.push_back(current_num);
-                pfamily.prime_family_list = initial_list;
-
-                canon_number_to_family[canon_number] = pfamily;
-
-              } else {
-                pfamily_ref.prime_family_list.push_back(current_num);
-              }
+              pfamily_ref.prime_family_list.push_back(current_num);
             }
-
           }
           cout << "---------------------------\n";
         }
@@ -257,24 +203,14 @@ int main() {
     current_num += 2; 
   }
   cout <<"-------------------------\n";
-#if 0
-  for (auto kv : indexes_to_prime_numbers) {
-    cout << kv.first << " has prime_number list size " << kv.second.size() << "\n";
-    if (kv.first == 23) {
+  for (auto kv : canon_number_to_family) {
+    PrimeNumberFamily &pfamily_ref = kv.second;
+    if (pfamily_ref.prime_family_list.size()  > 5) {
+      cout << "canon number " << kv.first << " has list of size " << pfamily_ref.prime_family_list.size() << "\n";
+      copy(pfamily_ref.prime_family_list.begin(), pfamily_ref.prime_family_list.end(), std::ostream_iterator<int>(cout, ","));
       cout << "\n";
-      copy(kv.second.begin(), kv.second.end(), std::ostream_iterator<int>(cout, ","));
-      cout << "\n"; 
     }
   }
-#endif
-    for (auto kv : canon_number_to_family) {
-      PrimeNumberFamily &pfamily_ref = kv.second;
-      if (pfamily_ref.prime_family_list.size()  > 5) {
-        cout << "canon number " << kv.first << " has list of size " << pfamily_ref.prime_family_list.size() << "\n";
-        copy(pfamily_ref.prime_family_list.begin(), pfamily_ref.prime_family_list.end(), std::ostream_iterator<int>(cout, ","));
-        cout << "\n";
-      }
-    }
    
 
   return 0;
