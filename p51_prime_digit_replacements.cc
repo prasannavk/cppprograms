@@ -20,12 +20,95 @@ struct PrimeNumberFamily {
 };
 
 // a canon number is the repeated digits replaced with 1
-std::map<int, PrimeNumberFamily> canon_number_to_family;
+std::map<long long int, PrimeNumberFamily> canon_number_to_family;
 
 struct Metadata {
   int repeating_digit;
   vector<int> index_list;
 }; 
+
+vector<vector<int>> Concatenate(vector<vector<int>> a, vector<vector<int>> b) {
+  if (a.empty()) {
+    return b;
+  }
+  if (b.empty()) {
+    return a;
+  }
+  vector<vector<int>> c = a;
+  for (auto vec_int : b) {
+    vector<int> temp = vec_int;
+    c.push_back(temp);
+  }
+  return c;
+}
+
+void DispVector(vector<long long int> inp) {
+  copy(inp.begin(), inp.end(), std::ostream_iterator<long long int>(cout, ","));
+  cout << "\n";
+}
+void DispVector(vector<int> inp) {
+  copy(inp.begin(), inp.end(), std::ostream_iterator<int>(cout, ","));
+  cout << "\n";
+}
+
+// returns a vector of combinations of input list. The combinations of nCk
+// where n is size of the vector and k is the number of elements chosen from the vector.
+vector<vector<int>> GenerateCombinations(vector<int> inp_list, int k) {
+#ifdef DEBUG
+  // Debug display list
+  cout << "input to Generate Combinations\n";
+  DispVector(inp_list);
+#endif
+
+  assert(k>=1);
+  if (k == 1) {
+    vector<vector<int>> temp;
+    for (auto elem : inp_list) {
+      vector<int> single_elem_list(1, elem);
+      temp.push_back(single_elem_list);
+    }
+    return temp;
+  }
+  if (inp_list.size() == k) {
+    vector<vector<int>> temp;
+    temp.push_back(inp_list);
+    return temp;
+  }
+  assert(inp_list.size() > k);
+  int elem = inp_list[0];
+  vector<int> elem_removed = inp_list;
+  // You either pick elem 
+  elem_removed.erase(std::remove(elem_removed.begin(), elem_removed.end(), elem), elem_removed.end());
+#ifdef DEBUG
+  cout << " removed element " << elem << "\n";
+  DispVector(elem_removed);
+#endif
+  std::vector<std::vector<int>> elem_picked_combo = GenerateCombinations(elem_removed, k - 1);
+#ifdef DEBUG
+  cout << "Displaying the output of GenerateCombinations for k = " << k -1 << "\n";
+#endif
+  for (auto &single_combo : elem_picked_combo) {
+#ifdef DEBUG
+    cout << "Elem picked combo output: \n";
+    DispVector(single_combo);
+#endif
+    single_combo.push_back(elem);
+#ifdef DEBUG
+    cout << "Elem picked combo output after elem push back: \n";
+    DispVector(single_combo);
+#endif
+  }
+  // Or you don't pick elem 
+  vector<vector<int>> elem_ignored_combo = GenerateCombinations(elem_removed, k);
+#ifdef DEBUG
+  for (auto &single_combo : elem_ignored_combo) {
+    cout << "Elem ignored combo output: \n";
+    DispVector(single_combo);
+  }
+#endif
+  return Concatenate(elem_picked_combo, elem_ignored_combo);
+}
+
 
 int TestPrime(int n) {
   if (n==1 || n == 2 || n == 3)
@@ -98,20 +181,77 @@ bool IsDigitRepeating(long long int prime_number, std::map<int, Metadata> *digit
 
 void FindCanonNumber(long long int prime_number,
     std::map<int, Metadata> digit_map,
-    int repeating_digit, long long int *canon_number) {
-  int digit_index = 1;
+    int repeating_digit, vector<int> index_combo,
+    long long int *canon_number);
+
+void FindCanonNumbers(long long int prime_number,
+    std::map<int, Metadata> digit_map,
+    int repeating_digit, vector<long long int> *canon_numbers, vector<vector<int>> *index_combos) {
+  // vector<vector<int>> index_combos;
+  // including the full size of repetition list
+  for (int i = 2; i <= digit_map[repeating_digit].index_list.size(); ++i) {
+#ifdef DEBUG
+    cout << "Displaying input index list:\n";
+    DispVector(digit_map[repeating_digit].index_list);
+#endif
+    vector<vector<int>> temp = GenerateCombinations(digit_map[repeating_digit].index_list, i);
+    for (auto &combo : temp) {
+      // sort
+      std::sort(combo.begin(), combo.end());
+    }
+#ifdef DEBUG
+    cout << "Displaying all the combinations obtained from index list\n";
+    for (auto combos : temp) {
+      DispVector(combos);
+    }
+#endif
+    *index_combos = Concatenate(*index_combos, temp);
+  }
+  int j = 0;
+  for (auto index_combo : *index_combos) {
+    long long int canon_number = 0;
+#ifdef DEBUG
+    cout << "find canon number for index_combo \n";
+    DispVector(index_combo);
+#endif
+    FindCanonNumber(prime_number,
+      digit_map, repeating_digit, index_combo, &canon_number);
+#ifdef DEBUG
+    cout << "Canon Number found is " << canon_number << "\n";
+#endif
+    (*canon_numbers)[j] = canon_number;
+    j++;
+  }
+}
+
+void FindCanonNumber(long long int prime_number,
+    std::map<int, Metadata> digit_map,
+    int repeating_digit, vector<int> index_combo,
+    long long int *canon_number) {
   std::deque<int> canon_number_digit_queue;
+#ifdef DEBUG
+  cout << "Printing the repeating digit's index list \n";
+  DispVector(digit_map[repeating_digit].index_list);
+  cout << "Printing index combo\n";
+  DispVector(index_combo);
+#endif
+  int digit_index = 1;
   while (prime_number != 0) {
     int digit = prime_number % 10;
     bool found = false;
-    for (auto ind : digit_map[repeating_digit].index_list) {
-      if (digit_index == ind) {
-        found = true;
-        break;
-      }
-    }
+    // for (auto ind : digit_map[repeating_digit].index_list) {
+    //  if (digit_index == ind) {
+        for (auto allowed_ind : index_combo) {
+          if (digit_index == allowed_ind) {
+            found = true;
+            break;
+          }
+        }
+    //  }
+    //}
     if (found) {
       canon_number_digit_queue.push_front(1);
+      //break;
     } else {
       canon_number_digit_queue.push_front(digit);
     }
@@ -124,20 +264,36 @@ void FindCanonNumber(long long int prime_number,
   for (auto canon_digit: canon_number_digit_queue) {
     *canon_number = (*canon_number)*10 + canon_digit;
   }
-  for (auto ind : digit_map[repeating_digit].index_list) {
+  std::sort(index_combo.begin(), index_combo.end());
+  // for (auto ind : digit_map[repeating_digit].index_list) {
+  for (auto ind : index_combo) {
     *canon_number = (*canon_number)*10 + ind;
+  }
+}
+inline int Factorial(int x) {
+  return (x == 1 ? x : x * Factorial(x - 1));
+}
+
+void TestCombinations() {
+  vector<vector<int>> out = GenerateCombinations({5, 7, 12, 13, 6, 203}, 3);
+  for (auto vec : out) {
+    for (auto elem : vec) {
+      cout << elem << " ";
+    }
+    cout << "\n";
   }
 }
 
 int main() {
+#if 1
   int prime_num_counter = 0;
 
   // std::cout << "prime 2" << std::endl;
   prime_numbers.push_back(2);
   long long int current_num = 3;
 
-  long long int begin_number = 10000;
-  long long int end_number = 99999; 
+  long long int begin_number = 100000;
+  long long int end_number = 999999;
   long int max = 2;
   while (current_num < end_number) {
     if (TestPrime(current_num)) {
@@ -154,49 +310,85 @@ int main() {
               continue;
             }
 
-            long long int canon_number = 0;
+            int num_repeating_digits = kv.second.index_list.size();
+            // we could consider any k of the n digits repeating to be replaceable
+            // nC2 + nC3 ..nCn --> number of canon_numbers
+            int num_canon_numbers = 1;  // 1 is added for nCn that is accounted in the looping
+            for (int k = 2; k < num_repeating_digits; ++k) {
+              num_canon_numbers += Factorial(num_repeating_digits)/(Factorial(k)*Factorial(num_repeating_digits-k));
+            }
+            vector<long long int> canon_numbers(num_canon_numbers, 0);
             int repeating_digit = kv.first;
+#if 0
             cout << repeating_digit << " has value " << "\n";
             copy(kv.second.index_list.begin(), kv.second.index_list.end(), std::ostream_iterator<int>(cout, ","));
             cout << "\n";
-            FindCanonNumber(current_num, digit_map, repeating_digit, &canon_number);
+#endif
+            vector<vector<int>> index_combos;
+            // canon_numbers and index_combos are parallel vectors
+            FindCanonNumbers(current_num, digit_map, repeating_digit, &canon_numbers, &index_combos);
+            cout << "canon numbers found :\n";
+            DispVector(canon_numbers);
 
             vector<int> indexes_of_repeating_digit = kv.second.index_list;
-            // make the map for canon number
-            if (canon_number_to_family.find(canon_number) == canon_number_to_family.end()) {
-              cout << "Canon number " << canon_number << " not found. Adding new number\n";
-              PrimeNumberFamily pfamily;
-              pfamily.size = 1;
-              pfamily.index_list = indexes_of_repeating_digit;
-              std::vector<long long int> initial_list;
-              initial_list.push_back(current_num);
-              pfamily.prime_family_list = initial_list;
 
-              canon_number_to_family[canon_number] = pfamily;
-            } else {
-              PrimeNumberFamily &pfamily_ref = canon_number_to_family[canon_number];
-              pfamily_ref.size++;
-              // assuming that the same canon number would result from same indexes of repeating digit
-              // asserting the same
-              cout << "current number is " << current_num << "\n";
-              cout << "canon number is " << canon_number << "\n";
-              cout << "current number's repeating digits indexes\n";
-              copy(indexes_of_repeating_digit.begin(), indexes_of_repeating_digit.end(), std::ostream_iterator<int>(cout, ","));
-              cout << "\nthe repeating indexes array in the map for similar numbers\n";
-              copy(pfamily_ref.index_list.begin(), pfamily_ref.index_list.end(), std::ostream_iterator<int>(cout, ","));
-              cout << "\nsimilar numbers are:\n";
-              copy(pfamily_ref.prime_family_list.begin(), pfamily_ref.prime_family_list.end(), std::ostream_iterator<int>(cout, ","));
-              cout << "\n";
-              int i = 0;
+            int canon_number_idx = 0;
+            for (auto canon_number : canon_numbers) {
+              // make the map for canon number
+              if (canon_number_to_family.find(canon_number) == canon_number_to_family.end()) {
+#if 0
+                cout << "Canon number " << canon_number << " not found. Adding new number\n";
+#endif
+                PrimeNumberFamily pfamily;
+                pfamily.size = 1;
+                pfamily.index_list = index_combos[canon_number_idx];  // indexes_of_repeating_digit;
+                std::vector<long long int> initial_list;
+                initial_list.push_back(current_num);
+                pfamily.prime_family_list = initial_list;
 
-              for (auto ind : indexes_of_repeating_digit) {
-                assert(ind == pfamily_ref.index_list[i]);
-                ++i;
+                canon_number_to_family[canon_number] = pfamily;
+              } else {
+                PrimeNumberFamily &pfamily_ref = canon_number_to_family[canon_number];
+                pfamily_ref.size++;
+                // assuming that the same canon number would result from same indexes of repeating digit
+                // asserting the same
+#if 0
+                cout << "current number is " << current_num << "\n";
+                cout << "canon number is " << canon_number << "\n";
+                cout << "current number's repeating digits indexes\n";
+                copy(indexes_of_repeating_digit.begin(), indexes_of_repeating_digit.end(), std::ostream_iterator<int>(cout, ","));
+                cout << "\nthe repeating indexes array in the map for similar numbers\n";
+                copy(pfamily_ref.index_list.begin(), pfamily_ref.index_list.end(), std::ostream_iterator<int>(cout, ","));
+                cout << "\nsimilar numbers are:\n";
+                copy(pfamily_ref.prime_family_list.begin(), pfamily_ref.prime_family_list.end(), std::ostream_iterator<int>(cout, ","));
+                cout << "\n";
+#endif
+                int i = 0;
+
+                for (auto ind : index_combos[canon_number_idx]) {
+                  if (ind != pfamily_ref.index_list[i]) {
+                    cout << " ind " << ind << "\n";
+                    cout << " pfamily_ref.index_list[i] " << pfamily_ref.index_list[i] << "\n";
+
+                    cout << "current number is " << current_num << "\n";
+                    cout << "canon number is " << canon_number << "\n";
+                    cout << "current number's repeating digits indexes\n";
+                    copy(indexes_of_repeating_digit.begin(), indexes_of_repeating_digit.end(), std::ostream_iterator<int>(cout, ","));
+                    cout << "\nthe repeating indexes array in the map for similar numbers\n";
+                    copy(pfamily_ref.index_list.begin(), pfamily_ref.index_list.end(), std::ostream_iterator<int>(cout, ","));
+                    cout << "\nsimilar numbers are:\n";
+                    copy(pfamily_ref.prime_family_list.begin(), pfamily_ref.prime_family_list.end(), std::ostream_iterator<int>(cout, ","));
+                    cout << "\n";
+                  }
+                  assert(ind == pfamily_ref.index_list[i]);
+                  ++i;
+                }
+                pfamily_ref.prime_family_list.push_back(current_num);
               }
-              pfamily_ref.prime_family_list.push_back(current_num);
-            }
+              canon_number_idx++;
+            }  // end of for loop for different canon numbers
           }
-          cout << "---------------------------\n";
+          // cout << "---------------------------\n";
         }
       }
     }
@@ -213,5 +405,6 @@ int main() {
   }
    
 
+#endif
   return 0;
 }
