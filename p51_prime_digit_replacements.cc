@@ -285,7 +285,6 @@ void TestCombinations() {
 }
 
 int main() {
-#if 1
   int prime_num_counter = 0;
 
   // std::cout << "prime 2" << std::endl;
@@ -352,17 +351,6 @@ int main() {
                 pfamily_ref.size++;
                 // assuming that the same canon number would result from same indexes of repeating digit
                 // asserting the same
-#if 0
-                cout << "current number is " << current_num << "\n";
-                cout << "canon number is " << canon_number << "\n";
-                cout << "current number's repeating digits indexes\n";
-                copy(indexes_of_repeating_digit.begin(), indexes_of_repeating_digit.end(), std::ostream_iterator<int>(cout, ","));
-                cout << "\nthe repeating indexes array in the map for similar numbers\n";
-                copy(pfamily_ref.index_list.begin(), pfamily_ref.index_list.end(), std::ostream_iterator<int>(cout, ","));
-                cout << "\nsimilar numbers are:\n";
-                copy(pfamily_ref.prime_family_list.begin(), pfamily_ref.prime_family_list.end(), std::ostream_iterator<int>(cout, ","));
-                cout << "\n";
-#endif
                 int i = 0;
 
                 for (auto ind : index_combos[canon_number_idx]) {
@@ -397,14 +385,13 @@ int main() {
   cout <<"-------------------------\n";
   for (auto kv : canon_number_to_family) {
     PrimeNumberFamily &pfamily_ref = kv.second;
-    if (pfamily_ref.prime_family_list.size()  > 5) {
+    // to find the list with size 8
+    if (pfamily_ref.prime_family_list.size()  > 7) {
       cout << "canon number " << kv.first << " has list of size " << pfamily_ref.prime_family_list.size() << "\n";
       copy(pfamily_ref.prime_family_list.begin(), pfamily_ref.prime_family_list.end(), std::ostream_iterator<int>(cout, ","));
       cout << "\n";
     }
   }
    
-
-#endif
   return 0;
 }
