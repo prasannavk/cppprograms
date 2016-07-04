@@ -1,3 +1,31 @@
+/*
+ *
+
+Problem Statement:
+
+Prime digit replacements:
+
+By replacing the 1st digit of the 2-digit number *3, it turns out that six of
+the nine possible values: 13, 23, 43, 53, 73, and 83, are all prime.
+
+By replacing the 3rd and 4th digits of 56**3 with the same digit, this 5-digit
+number is the first example having seven primes among the ten generated
+numbers, yielding the family: 56003, 56113, 56333, 56443, 56663, 56773,
+and 56993. Consequently 56003, being the first member of this family, is
+the smallest prime with this property.
+
+Find the smallest prime which, by replacing part of the number (not necessarily
+adjacent digits) with the same digit, is part of an eight prime value family.
+
+Solution:
+Overall approach used here is to generate the primes.
+As we generate primes, we check if digits are repeated.
+If digits are repeated, we take down the digit and the locations in which it is repeated.
+We generate a "Canon Number" which is a key that would be the same for all numbers of
+the required pattern. Using this "Canon Number as the key to an associative map, we collect
+the similar patterns within a range. Once the generation phase is over, we run through
+the arranged prime numbers to find the pattern that has 8 prime numbers.
+*/
 #include <iostream>
 #include <vector>
 #include <deque>
