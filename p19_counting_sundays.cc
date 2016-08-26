@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 
-// Handling on the divisible by 4 case here. As the problem asks for years
+// Handling only the divisible by 4 case here. As the problem asks for years
 // within a century, I handle the century years as special cases.
 bool is_leap(int year) {
   if (year % 4 == 0) {
