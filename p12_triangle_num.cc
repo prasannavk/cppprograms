@@ -76,13 +76,18 @@ vector<vector<int>> GetCombinations(vector<int> base, int r) {
   int num_combinations = Factorial(n) / (Factorial(n - r) * Factorial(r));
   vector<vector<int>> generated_combinations(num_combinations, std::vector<int>(r, 0));
 
+  int across_combinations_count = 0;
   do {
+    int within_combination_count = 0;
     for (int i = 0; i < n; ++i) {
       if (v[i]) {
+        generated_combinations[across_combinations_count][within_combination_count] = base[i];
         std::cout << (i + 1) << " ";
+        within_combination_count++;
       }
     }
     std::cout << "\n";
+    across_combinations_count++;
   } while (std::next_permutation(v.begin(), v.end()));
 }
 
