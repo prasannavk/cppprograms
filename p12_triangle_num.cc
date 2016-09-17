@@ -138,7 +138,7 @@ int main() {
   int prime_num_counter = 0;
   // long int current_num = 6;
   long int current_num = 2;
-  prime_numbers.resize(100001);
+  prime_numbers.resize(1000001);
   TestPrime(current_num);
   prime_num_counter++;
   prime_numbers[prime_num_counter - 1] = current_num;
@@ -153,7 +153,7 @@ int main() {
   current_num = 6;
 
   // loop through current_num to figure out the first number that has greater than 500 divisors
-  while (prime_num_counter != 100000) {
+  while (prime_num_counter != 1000000) {
     int num_divisors = 0;
     if (TestPrime(current_num)) {
       // std::cout << "prime " << current_num << std::endl;
@@ -165,12 +165,10 @@ int main() {
         ++current_num;
         continue;
       }
-      /*
-      if (current_num < 1000) {
+      if (current_num <1279200 ) {
         ++current_num;
         continue;
       }
-      */
       
       std::vector<int> prime_factors; 
       int num_unique_prime_factors = 0;
