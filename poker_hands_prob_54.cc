@@ -471,7 +471,7 @@ int main() {
   std::string game_line;
   int player1_win_counter = 0;
     
-  while (std::getline(is, game_line)) {
+  while (std::getline(std::cin, game_line)) {
     // std::cout << game_line << std::endl;
     vector<string> card_vec = Tokenize(game_line);
     int player_num = DecideWinner(card_vec);
